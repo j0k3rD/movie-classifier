@@ -2,3 +2,8 @@ datasets
 logs
 movie_dataset
 films_classifier.h5
+Lib
+Scripts
+Include
+pyvenv.cfg
+share
