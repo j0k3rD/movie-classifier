@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/logo.jpg">
+    <title>Movie Classifier</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        #result {
+            font-weight: bold;
+            font-size: 2rem;
+            text-align: center;
+        }
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        .jumbotron {
+            background-image: url('images/sillas.jpg');
+            background-size: cover;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .jumbotron::before {
+            left: 0;
+            background-position: left;
+        }
+        .jumbotron::after {
+            right: 0;
+            background-position: right;
+        }
+        .jumbotron h1 {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        .lead {
+            font-size: 1.2rem;
+        }
+        .custom-file-input::before {
+            content: 'Upload an image';
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            border: 2px solid #007bff;
+            border-radius: 4px;
+            padding: 6px 12px;
+            outline: none;
+            white-space: nowrap;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            display: block;
+        }
+        .custom-file-input:hover::before {
+            border-color: #0056b3;
+        }
+        .custom-file-input:active::before {
+            background: #0056b3;
+        }
+        #canvas {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <div class="jumbotron">
+        <img class="d-block mx-auto mb-2" src="images/logo.jpg" alt="" width="150" height="150">
+        <h1 class="display-5 fw-bold">Movie Classifier</h1>
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-0">Image Classification (Movie) using TensorFlow</p>
+            <p class="lead mb-4">Upload an image and discover which movie it belongs to!</p>
+        </div>
+    </div>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12 col-md-4 offset-md-4 text-center">
+                <label class="custom-file-input">
+                    <input type="file" accept="image/*" id="image-input" onchange="processImage(event)">
+                </label>
+                <canvas id="canvas" width="224" height="224"></canvas>
+                <div id="result"></div>
+            </div>
+        </div>
+    </div>
+    <div id="chart-container"></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.2/dist/tf.min.js"></script>
+
+<script type="text/javascript">
+    var model = null;
+    var class_labels = ['The Dark Knight', 'The Godfather', 'The Lord of the Rings: The Return of the King', 'Titanic'];
+
+    (async() => {
+        console.log("Loading model...");
+        model = await tf.loadLayersModel("/output_directory/model.json");
+        console.log("Model loaded");
+    })();
+
+    function processImage(event) {
+        var file = event.target.files[0];
+
+        if (file) {
+            var image = new Image();
+            image.src = URL.createObjectURL(file);
+
+            image.onload = function() {
+                var canvas = document.getElementById("canvas");
+                var context = canvas.getContext("2d");
+                var size = 224;
+
+                canvas.width = size;
+                canvas.height = size;
+
+                context.drawImage(image, 0, 0, size, size);
+
+                var imageData = context.getImageData(0, 0, size, size);
+                var inputTensor = tf.browser.fromPixels(imageData).toFloat();
+
+                if (inputTensor.shape[2] === 1) {
+                    inputTensor = inputTensor.concat(inputTensor, 2).concat(inputTensor, 2);
+                }
+
+                inputTensor = inputTensor.div(255);
+                inputTensor = inputTensor.expandDims();
+
+                predict(inputTensor);
+            };
+        }
+    }
+
+    function predict(inputTensor) {
+        if (model != null) {
+            var result = model.predict(inputTensor).dataSync();
+
+            // Get the class with the highest probability
+            var classIndex = result.indexOf(Math.max(...result));
+            var movie = class_labels[classIndex];
+
+            document.getElementById("result").innerHTML = "Belongs to the movie: " + movie;
+
+            const data = result;
+        }
+    }
+</script>
+</body>
+</html>

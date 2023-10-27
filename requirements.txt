@@ -1,5 +1,4 @@
 requests==2.31.0
-streamlit==1.27.2
 tensorflow
 Pillow==10.1.0
 opencv-python==4.8.1.78
