@@ -64,6 +64,9 @@
         #canvas {
             max-width: 100%;
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -79,7 +82,15 @@
     <div class="container mt-5">
         <div class="row">
             <div class="col-12 col-md-4 offset-md-4 text-center">
-                <label class="custom-file-input">
+                <div class="btn-group" role="group" aria-label="Model Selection">
+                    <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary" for="btnradio1" onclick="setModel('model')">Use Our Model</label>
+                    <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="btnradio3" onclick="setModel('model_mobilenet')">Use MobileNet Model</label>
+                </div>
+                <p id="model-message" class="hidden">You chose the option: <span id="selected-model">-</span></p>
+                <br>
+                <label class="custom-file-input hidden">
                     <input type="file" accept="image/*" id="image-input" onchange="processImage(event)">
                 </label>
                 <canvas id="canvas" width="224" height="224"></canvas>
@@ -90,16 +101,22 @@
     <div id="chart-container"></div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.2/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 
 <script type="text/javascript">
     var model = null;
     var class_labels = ['The Dark Knight', 'The Godfather', 'The Lord of the Rings: The Return of the King', 'Titanic'];
 
     (async() => {
-        console.log("Loading model...");
-        model = await tf.loadLayersModel("/output_directory/model.json");
-        console.log("Model loaded");
+        // Loading model with LoadLayersModel
+        console.log("Loading first model...");
+        model_cnn = await tf.loadLayersModel("/output_directory/model.json");
+        console.log("First Model loaded");
+
+        // We use GraphModel instead because the converter does not support Functional models
+        console.log("Loading second model...");
+        model_mobilenet = await tf.loadGraphModel("/output_directory_mobilenet/model.json");
+        console.log("Second Model loaded");
     })();
 
     function processImage(event) {
@@ -134,6 +151,29 @@
         }
     }
 
+    function setModel(modelName) {
+        if (modelName === "model") {
+            console.log("Using model");
+            model = model_cnn;
+            selectedModelText = "Our Model";
+        } else if (modelName === "model_mobilenet") {
+            console.log("Using MobileNet");
+            model = model_mobilenet;
+            selectedModelText = "MobileNet";
+        }
+
+        // Show the input file
+        var imageInput = document.getElementById("image-input");
+        var label = imageInput.parentElement;
+        label.classList.remove("hidden");
+
+        // Show the model selected in a message
+        var modelMessage = document.getElementById("model-message");
+        var selectedModelSpan = document.getElementById("selected-model");
+        selectedModelSpan.textContent = selectedModelText;
+        modelMessage.classList.remove("hidden");
+    }
+
     function predict(inputTensor) {
         if (model != null) {
             var result = model.predict(inputTensor).dataSync();
@@ -145,6 +185,9 @@
             document.getElementById("result").innerHTML = "Belongs to the movie: " + movie;
 
             const data = result;
+        } else {
+            alert("Please select a model first");
+            return;
         }
     }
 </script>

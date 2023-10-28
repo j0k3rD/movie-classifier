@@ -2,6 +2,7 @@ datasets
 logs
 movie_dataset
 films_classifier.h5
+films_classifier_mobilenet.h5
 Lib
 Scripts
 Include
