@@ -9,3 +9,4 @@ matplotlib-inline==0.1.6
 seaborn
 numpy
 Flask==3.0.0
+scikit-learn
