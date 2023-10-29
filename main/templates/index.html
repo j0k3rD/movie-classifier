@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" sizes="32x32" href="images/logo.jpg">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='static/images/logo.jpg') }}">
     <title>Movie Classifier</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style>
@@ -18,7 +18,7 @@
             font-family: 'Arial', sans-serif;
         }
         .jumbotron {
-            background-image: url('images/sillas.jpg');
+            background-image: url("{{ url_for('static', filename='static/images/sillas.jpg') }}");
             background-size: cover;
             text-align: center;
             padding: 2rem;
@@ -72,7 +72,7 @@
 <body>
 <main>
     <div class="jumbotron">
-        <img class="d-block mx-auto mb-2" src="images/logo.jpg" alt="" width="150" height="150">
+        <img class="d-block mx-auto mb-2" src="{{ url_for('static', filename='static/images/logo.jpg') }}" alt="" width="150" height="150">
         <h1 class="display-5 fw-bold">Movie Classifier</h1>
         <div class="col-lg-6 mx-auto">
             <p class="lead mb-0">Image Classification (Movie) using TensorFlow</p>
@@ -106,16 +106,18 @@
 <script type="text/javascript">
     var model = null;
     var class_labels = ['The Dark Knight', 'The Godfather', 'The Lord of the Rings: The Return of the King', 'Titanic'];
+    var modelCnnUrl = "{{ url_for('static', filename='models/output_directory/model.json') }}";
+    var modelMobilenetUrl = "{{ url_for('static', filename='models/output_directory_mobilenet/model.json') }}";
 
     (async() => {
         // Loading model with LoadLayersModel
         console.log("Loading first model...");
-        model_cnn = await tf.loadLayersModel("/output_directory/model.json");
+        model_cnn = await tf.loadLayersModel(modelCnnUrl);
         console.log("First Model loaded");
 
         // We use GraphModel instead because the converter does not support Functional models
         console.log("Loading second model...");
-        model_mobilenet = await tf.loadGraphModel("/output_directory_mobilenet/model.json");
+        model_mobilenet = await tf.loadGraphModel(modelMobilenetUrl);
         console.log("Second Model loaded");
     })();
 
